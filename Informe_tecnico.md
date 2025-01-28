@@ -13,11 +13,11 @@
 
    Introducimos “ en el campo User.
 
-   ![](Aspose.Words.dc27f7df-e8bb-4e0d-b8bd-0a475d92afa5.001.png)
+   ![](images/001.png)
 
    Nos da este error.
 
-   ![](Aspose.Words.dc27f7df-e8bb-4e0d-b8bd-0a475d92afa5.002.png)
+   ![](images/002.png)
 
    **b)** Gracias a la SQL Injection del apartado anterior, sabemos que este formulario es vulnerable y conocemos el nombre de los campos de la tabla “users”. Para tratar de impersonar a un usuario, nos hemos descargado un diccionario que contiene algunas de las contraseñas más utilizadas (se listan a continuación):
 
@@ -46,20 +46,20 @@
 
    Interceptando el tráfico de con Burpsuite, seleccionamos la página con el formulario vulnerable.
 
-   ![](Aspose.Words.dc27f7df-e8bb-4e0d-b8bd-0a475d92afa5.003.png)
+   ![](images/003.png)
 
 
    Hacemos un ataque cluster bomb, introduciendo en user “ OR userId = añadiendo un payload para con números incrementales de 1 a 10. De este modo ira cambiando el valor del userId.
 
-   ![](Aspose.Words.dc27f7df-e8bb-4e0d-b8bd-0a475d92afa5.004.png)
+   ![](images/004.png)
 
    Creamos también otro payload para el campo password, de tipo lista simple, con las contraseñas del diccionario.
 
-   ![](Aspose.Words.dc27f7df-e8bb-4e0d-b8bd-0a475d92afa5.005.png)
+   ![](images/005.png)
 
    Y nos devolverá la id del usuario al que pertenece la contraseña. También podríamos haber usado para user, un payload con un diccionario de nombres de usuario.
 
-   ![](Aspose.Words.dc27f7df-e8bb-4e0d-b8bd-0a475d92afa5.006.png)
+   ![](images/006.png)
 
 
    c) Si vais a private/auth.php, veréis que en la función areUserAndPasswordValid, se utiliza “SQLite3::escapeString()”, pero, aun así, el formulario es vulnerable a SQL Injections, explicad cuál es el error de programación de esta función y como lo podéis corregir.
@@ -82,13 +82,13 @@
 
    Cambiamos el userId.
 
-   ![](Aspose.Words.dc27f7df-e8bb-4e0d-b8bd-0a475d92afa5.007.png)
+   ![](images/007.png)
 
-   ![](Aspose.Words.dc27f7df-e8bb-4e0d-b8bd-0a475d92afa5.008.png)
+   ![](images/008.png)
 
    Y veremos como los comentarios se añaden con el nombre de otro usuario.
 
-   ![](Aspose.Words.dc27f7df-e8bb-4e0d-b8bd-0a475d92afa5.009.png)
+   ![](images/009.png)
 
 ### **2. XSS**
    En vistas de los problemas de seguridad que habéis encontrado, empezáis a sospechar que esta aplicación quizás es vulnerable a XSS (Cross Site Scripting).
@@ -99,7 +99,7 @@
    | :- | :- |
    |En el formulario de la página...|Para añadir comentarios (add\_comment.php)|
 
-   ![](Aspose.Words.dc27f7df-e8bb-4e0d-b8bd-0a475d92afa5.010.png)![](Aspose.Words.dc27f7df-e8bb-4e0d-b8bd-0a475d92afa5.011.png)
+   ![](images/010.png)![](images/011.png)
 
    **b)** Por qué dice &amp; cuando miráis un link (como el que aparece a la portada de esta aplicación pidiendo que realices un donativo) con parámetros GETdentro de código html si en realidad el link es sólo con "&" ?
 
@@ -121,19 +121,19 @@
 
    En el formulario de añadir jugador podemos insertar:
 
-   ![](Aspose.Words.dc27f7df-e8bb-4e0d-b8bd-0a475d92afa5.012.png)
+   ![](images/012.png)
 
    Y nos mostraría cada vez que alguien visite el formulario la información almacenada en la cookie:
 
-   ![](Aspose.Words.dc27f7df-e8bb-4e0d-b8bd-0a475d92afa5.013.png)
+   ![](images/013.png)
 
    Y en el buscador de jugadores, podemos introducir:
 
-   ![](Aspose.Words.dc27f7df-e8bb-4e0d-b8bd-0a475d92afa5.014.png)
+   ![](images/014.png)
 
    Y nos mostraría cada vez que alguien visite el buscador:
 
-   ![](Aspose.Words.dc27f7df-e8bb-4e0d-b8bd-0a475d92afa5.015.png)
+   ![](images/015.png)
 1. ### **3. Control de acceso, autenticación y sesiones de usuarios**
    **a)** En el ejercicio 1, hemos visto cómo era inseguro el acceso de los usuarios a la aplicación. En la página de register.php tenemos el registro de usuario. ¿Qué medidas debemos implementar para evitar que el registro sea inseguro? Justifica esas medidas e implementa las medidas que sean factibles en este proyecto.
 
