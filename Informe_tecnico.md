@@ -1,4 +1,4 @@
-﻿1. ### **1. SQLi**
+﻿### **1. SQLi**
    La página no permite añadir jugadores a usuarios no autenticados, un formulario nos exige que introduzcamos un usuario y contraseña válidos. Lo primero que haremos es comprobar que este formulario es vulnerable a una inyección y aprovecharlo para saltarnos esta protección.
 
    **a)** Dad un ejemplo de combinación de usuario y contraseña que provoque un error en la consulta SQL generada por este formulario. A partir del mensaje de error obtenido, decid cuál es la consulta SQL que se ejecuta, cuál de los campos introducidos al formulario utiliza y cuál no.
@@ -67,10 +67,10 @@
 
    c) Si vais a private/auth.php, veréis que en la función areUserAndPasswordValid, se utiliza “SQLite3::escapeString()”, pero, aun así, el formulario es vulnerable a SQL Injections, explicad cuál es el error de programación de esta función y como lo podéis corregir.
 
-   |Explicación del error...|El error está en que la función SQLite3::escapeString() se aplica a toda la consulta SQL y debería aplicarse solo al valor del parámetro $user. Así que la función de escape no sirve para evitar las inyecciones SQL.|
-   | :- | :- |
-   |Solución: cambiar la línea con el código...|$query = SQLite3::escapeString('SELECT userId, password FROM users WHERE username = "' . $user . '"');|
-   |…por la siguiente línea...|<p>function areUserAndPasswordValid($user, $password) {</p><p>`    `global $db, $userId;</p><p></p><p>`    `$query = "SELECT userId, password FROM users WHERE username = :username";</p><p>`    `$stmt = $db->prepare($query);</p><p>`    `$stmt->bindValue(':username', $user, SQLITE3\_TEXT);</p><p>`    `$result = $stmt->execute();</p><p></p><p>`    `$row = $result->fetchArray(SQLITE3\_ASSOC);</p><p></p><p>`    `if (!$row) return FALSE;</p><p></p><p>`    `if ($password == $row['password']) {</p><p>`        `$userId = $row['userId'];</p><p>`        `$\_COOKIE['userId'] = $userId;</p><p>`        `return TRUE;</p><p>`    `} else {</p><p>`        `return FALSE;</p><p>`    `}</p><p>}</p>|
+| Explicación del error... | El error está en que la función `SQLite3::escapeString()` se aplica a toda la consulta SQL y debería aplicarse solo al valor del parámetro `$user`. Así que la función de escape no sirve para evitar las inyecciones SQL. |
+| :- | :- |
+| Solución: cambiar la línea con el código... | ```php $query = SQLite3::escapeString('SELECT userId, password FROM users WHERE username = "' . $user . '"'); ``` |
+| …por la siguiente línea... | ```php function areUserAndPasswordValid($user, $password) { global $db, $userId; $query = "SELECT userId, password FROM users WHERE username = :username"; $stmt = $db->prepare($query); $stmt->bindValue(':username', $user, SQLITE3_TEXT); $result = $stmt->execute(); $row = $result->fetchArray(SQLITE3_ASSOC); if (!$row) return FALSE; if ($password == $row['password']) { $userId = $row['userId']; $_COOKIE['userId'] = $userId; return TRUE; } else { return FALSE; } } ``` |
 
    **d)** Si habéis tenido éxito con el apartado b), os habéis autenticado utilizando el usuario luis (si no habéis tenido éxito, podéis utilizar la contraseña 1234 para realizar este apartado). Con el objetivo de mejorar la imagen de la jugadora Candela Pacheco, le queremos escribir un buen puñado de comentarios positivos, pero no los queremos hacer todos con la misma cuenta de usuario.
 
@@ -93,7 +93,7 @@
 
    ![](Aspose.Words.dc27f7df-e8bb-4e0d-b8bd-0a475d92afa5.009.png)
 
-1. ### **2. XSS**
+### **2. XSS**
    En vistas de los problemas de seguridad que habéis encontrado, empezáis a sospechar que esta aplicación quizás es vulnerable a XSS (Cross Site Scripting).
 
    **a)** Para ver si hay un problema de XSS, crearemos un comentario que muestre un alert de Javascript siempre que alguien consulte el/los comentarios de aquel jugador (show\_comments.php). Dad un mensaje que genere un «alert»de Javascript al consultar el listado de mensajes.
@@ -106,18 +106,15 @@
 
    **b)** Por qué dice &amp; cuando miráis un link (como el que aparece a la portada de esta aplicación pidiendo que realices un donativo) con parámetros GETdentro de código html si en realidad el link es sólo con "&" ?
 
-   |Explicación...|<p>Se escribe &amp; en HTML por seguridad y compatibilidad, para evitar que el navegador lo confunda con una entidad HTML, ya que podría causar errores.</p><p>Por ejemplo, un enlace con parámetros GET como:</p><p><a href="http://www.donate.co?amount=100&destination=ACMEScouting/">donate</a></p><p></p><p>Se codifica como:</p><p><a href="[http://www.donate.co?amount=100&amp;destination=ACMEScouting/](http://www.donate.co/?amount=100&amp;destination=ACMEScouting/)">donate</a></p><p></p><p>Esto asegura que el navegador entienda correctamente el & como parte de la URL y no como una entidad especial. El navegador lo convierte después a "&" al hacer la solicitud HTTP.</p>|
-   | :- | :- |
+| Explicación... | <p>Se escribe `&amp;` en HTML por seguridad y compatibilidad, para evitar que el navegador lo confunda con una entidad HTML, ya que podría causar errores.</p><p>Por ejemplo, un enlace con parámetros GET como:</p><p><code>&lt;a href="http://www.donate.co?amount=100&amp;destination=ACMEScouting/"&gt;donate&lt;/a&gt;</code></p><p>Se codifica como:</p><p><code>&lt;a href="http://www.donate.co?amount=100&amp;destination=ACMEScouting/"&gt;donate&lt;/a&gt;</code></p><p>Esto asegura que el navegador entienda correctamente el `&` como parte de la URL y no como una entidad especial. El navegador lo convierte después a `&` al hacer la solicitud HTTP.</p> |
+| :- | :- |
 
    **c)** Explicad cuál es el problema de show\_comments.php, y cómo lo arreglaríais. Para resolver este apartado, podéis mirar el código fuente de esta página.
 
-   |¿Cuál es el problema?|<p>El problema en show\_comments.php, es una vulnerabilidad Cross-Site Scripting (XSS) combinada con una inyección SQL</p><p>Es vulnerable a inyecciones porque concatena directamente $\_GET['id'] sin ninguna validación o escape como vemos:</p><p></p><p>$query = "SELECT commentId, username, body FROM comments C, users U WHERE C.playerId =".$\_GET['id']." AND U.userId = C.userId order by C.playerId desc";</p><p></p><p>Y es vulnerable a XSS porque el contenido de los comentarios se imprime directamente en el HTML sin ningún escape:, como vemos en:</p><p></p><p>echo "<div></p><p>`        `<h4> ". $row['username'] ."</h4></p><p>`        `<p>commented: " . $row['body'] . "</p></p><p>`      `</div>";</p>|
-   | :- | :- |
-   |Sustituyo el código de la/las líneas...|<p>Para Inyección SQL: $query = "SELECT commentId, username, body FROM comments C, users U WHERE C.playerId =".$\_GET['id']." AND U.userId = C.userId order by C.playerId desc</p><p></p><p>Para XSS: echo "<div></p><p>`        `<h4> ". $row['username'] ."</h4></p><p>`        `<p>commented: " . $row['body'] . "</p></p><p>`      `</div>";</p>|
-   |…por el siguiente código...|<p>Para inyección SQL: $query = "SELECT commentId, username, body FROM comments C, users U WHERE C.playerId = :playerId AND U.userId = C.userId ORDER BY C.playerId DESC";</p><p>$stmt = $db->prepare($query);</p><p>$stmt->bindValue(':playerId', $\_GET['id'], SQLITE3\_INTEGER);</p><p>$result = $stmt→execute();</p><p></p><p>Para XSS: echo "<div></p><p>`        `<h4>" . htmlspecialchars($row['username'], ENT\_QUOTES, 'UTF-8') . "</h4></p><p>`        `<p>commented: " . htmlspecialchars($row['body'], ENT\_QUOTES, 'UTF-8') . "</p></p><p>`      `</div>";</p><p></p><p>y validar y filtrar la entrada del usuario: $playerId = filter\_input(INPUT\_GET, 'id', FILTER\_VALIDATE\_INT);</p><p>if ($playerId === false || $playerId === null) {</p><p>`    `die("Invalid player ID");</p><p>}</p>|
-
-
-
+| ¿Cuál es el problema? | <p>El problema en `show_comments.php` es una vulnerabilidad Cross-Site Scripting (XSS) combinada con una inyección SQL.</p><p>Es vulnerable a inyecciones porque concatena directamente `$_GET['id']` sin ninguna validación o escape, como vemos:</p><p></p><p><code>$query = "SELECT commentId, username, body FROM comments C, users U WHERE C.playerId =".$_GET['id']." AND U.userId = C.userId order by C.playerId desc";</code></p><p></p><p>Y es vulnerable a XSS porque el contenido de los comentarios se imprime directamente en el HTML sin ningún escape, como vemos en:</p><p></p><p><code>echo "&lt;div&gt;&lt;h4&gt;". $row['username'] ."&lt;/h4&gt;&lt;p&gt;commented: ". $row['body'] ."&lt;/p&gt;&lt;/div&gt;";</code></p> |
+| :- | :- |
+| Sustituyo el código de la/las líneas... | <p>Para Inyección SQL: <code>$query = "SELECT commentId, username, body FROM comments C, users U WHERE C.playerId =".$_GET['id']." AND U.userId = C.userId order by C.playerId desc";</code></p><p>Para XSS: <code>echo "&lt;div&gt;&lt;h4&gt; ". $row['username'] ."&lt;/h4&gt;&lt;p&gt;commented: " . $row['body'] . "&lt;/p&gt;&lt;/div&gt;";</code></p> |
+| …por el siguiente código... | <p>Para inyección SQL: <code>$query = "SELECT commentId, username, body FROM comments C, users U WHERE C.playerId = :playerId AND U.userId = C.userId ORDER BY C.playerId DESC";</code></p><p><code>$stmt = $db->prepare($query);</code></p><p><code>$stmt->bindValue(':playerId', $_GET['id'], SQLITE3_INTEGER);</code></p><p><code>$result = $stmt->execute();</code></p><p></p><p>Para XSS: <code>echo "&lt;div&gt;&lt;h4&gt;" . htmlspecialchars($row['username'], ENT_QUOTES, 'UTF-8') . "&lt;/h4&gt;&lt;p&gt;commented: " . htmlspecialchars($row['body'], ENT_QUOTES, 'UTF-8') . "&lt;/p&gt;&lt;/div&gt;";</code></p><p></p><p>y validar y filtrar la entrada del usuario: <code>$playerId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);</code></p><p><code>if ($playerId === false || $playerId === null) {</code></p><p><code>die("Invalid player ID");</code></p><p><code>}</code></p> |
 
    **d)** Descubrid si hay alguna otra página que esté afectada por esta misma vulnerabilidad. En caso positivo, explicad cómo lo habéis descubierto.
 
@@ -149,33 +146,69 @@
 
    Aunque se usa SQLite3::escapeString(), es mejor usar consultas preparadas. Además, debemos validar la longitud y formato del nombre de usuario. Debería quedar así en nuestro código:
 
-   |<p>$username = trim($\_POST['username']);</p><p>if (strlen($username) < 3 || strlen($username) > 20) {</p><p>`    `die("El nombre de usuario debe tener entre 3 y 20 caracteres.");</p><p>}</p><p>if (!preg\_match('/^[a-zA-Z0-9\_]+$/', $username)) {</p><p>`    `die("El nombre de usuario solo puede contener letras, números y guiones bajos.");</p><p>}</p>|
-   | :- |
+```
+$username = trim($_POST['username']);
+if (strlen($username) < 3 || strlen($username) > 20) {
+    die("El nombre de usuario debe tener entre 3 y 20 caracteres.");
+}
+if (!preg_match('/^[a-zA-Z0-9_]+$/', $username)) {
+    die("El nombre de usuario solo puede contener letras, números y guiones bajos.");
+} 
+```
 
    Las contraseñas, actualmente se están guardando en texto plano, y deberíamos de aplicar un hash seguro para las contraseñas, podríamos usar password\_hash(), de este modo:
 
-   |$password = password\_hash($\_POST['password'], PASSWORD\_DEFAULT);|
-   | :- |
+```
+$password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+```
 
    La consulta a la base de datos, es de forma directa, deberíamos cambiarla a una consulta preparada, quedando así:
 
-   |<p>$query = "INSERT INTO users (username, password) VALUES (:username, :password)";</p><p>$stmt = $db->prepare($query);</p><p>$stmt->bindValue(':username', $username, SQLITE3\_TEXT);</p><p>$stmt->bindValue(':password', $password, SQLITE3\_TEXT);</p><p>$stmt->execute() or die("Invalid query");</p>|
-   | :- |
+```
+$query = "INSERT INTO users (username, password) VALUES (:username, :password)";
+$stmt = $db->prepare($query);
+$stmt->bindValue(':username', $username, SQLITE3_TEXT);
+$stmt->bindValue(':password', $password, SQLITE3_TEXT);
+$stmt->execute() or die("Invalid query");
+```
 
    No se comprueba si el usuario existe ya antes de registrarlo, deberíamos comprobarlo implementando lo siguiente:
 
-   |<p>$checkQuery = "SELECT COUNT(\*) FROM users WHERE username = :username";</p><p>$checkStmt = $db->prepare($checkQuery);</p><p>$checkStmt->bindValue(':username', $username, SQLITE3\_TEXT);</p><p>$result = $checkStmt->execute();</p><p>if ($result->fetchArray()[0] > 0) {</p><p>`    `die("El nombre de usuario ya existe.");</p><p>}</p>|
-   | :- |
+```
+$checkQuery = "SELECT COUNT(*) FROM users WHERE username = :username";
+$checkStmt = $db->prepare($checkQuery);
+$checkStmt->bindValue(':username', $username, SQLITE3_TEXT);
+$result = $checkStmt->execute();
+if ($result->fetchArray()[0] > 0) {
+    die("El nombre de usuario ya existe.");
+}
+```
+
 
    A la hora de establecer la contraseña, no existe ninguna política en las mismas, por lo que deberíamos implementar lo siguiente para requerir unos parámetros mínimos:
 
-   |<p>if (strlen($\_POST['password']) < 8) {</p><p>`    `die("La contraseña debe tener al menos 8 caracteres.");</p><p>}</p>|
-   | :- |
+```
+if (strlen($_POST['password']) < 8) {
+    die("La contraseña debe tener al menos 8 caracteres.");
+}
+```
+
 
    No existe ninguna protección contra CSRF, que son un tipo de ataque que engaña al usuario para que realizar acciones en una aplicación web sin su consentimiento y/o conocimiento, por lo que podríamos implementar tokens CSRF en el formulario de la manera siguiente:
 
-   |<p>session\_start();</p><p>if ($\_SERVER['REQUEST\_METHOD'] === 'POST') {</p><p>`    `if (!isset($\_POST['csrf\_token']) || $\_POST['csrf\_token'] !== $\_SESSION['csrf\_token']) {</p><p>`        `die("Token CSRF inválido.");</p><p>`    `}</p><p>}</p><p>$\_SESSION['csrf\_token'] = bin2hex(random\_bytes(32));</p><p></p><p>y en el formulario HTML:</p><p></p><p><input type="hidden" name="csrf\_token" value="<?php echo $\_SESSION['csrf\_token']; ?>"></p>|
-   | :- |
+```
+session_start();
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        die("Token CSRF inválido.");
+    }
+}
+$_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+
+// y en el formulario HTML:
+<input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+```
+
 
    El registro, se realiza sobre una conexión HTTP, deberíamos hacer que se realizara sobre una conexión HTTPS, pero esto lo debemos configurar en el servidor web, no en el código PHP de la aplicación web.
 
