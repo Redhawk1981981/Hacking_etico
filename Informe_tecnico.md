@@ -49,7 +49,6 @@
    ![](Aspose.Words.dc27f7df-e8bb-4e0d-b8bd-0a475d92afa5.003.png)
 
 
-
    Hacemos un ataque cluster bomb, introduciendo en user “ OR userId = añadiendo un payload para con números incrementales de 1 a 10. De este modo ira cambiando el valor del userId.
 
    ![](Aspose.Words.dc27f7df-e8bb-4e0d-b8bd-0a475d92afa5.004.png)
@@ -61,8 +60,6 @@
    Y nos devolverá la id del usuario al que pertenece la contraseña. También podríamos haber usado para user, un payload con un diccionario de nombres de usuario.
 
    ![](Aspose.Words.dc27f7df-e8bb-4e0d-b8bd-0a475d92afa5.006.png)
-
-
 
 
    c) Si vais a private/auth.php, veréis que en la función areUserAndPasswordValid, se utiliza “SQLite3::escapeString()”, pero, aun así, el formulario es vulnerable a SQL Injections, explicad cuál es el error de programación de esta función y como lo podéis corregir.
@@ -382,21 +379,24 @@ if (!$username || strlen($username) < 3 || strlen($username) > 20) {
 
 | En el campo... | 
 | --------------- | 
-| <div> |
-|     <a href="show_comments.php?id=".$row['playerid'].">(show/add comments)</a> |
-|     <a href="insert_player.php?id=".$row['playerid'].">(edit player)</a> |
-| </div> |
-| </li> |
-| } |
+| ```
+<div>
+    <a href="show_comments.php?id=".$row['playerid'].">(show/add comments)</a>
+    <a href="insert_player.php?id=".$row['playerid'].">(edit player)</a>
+</div>
+</li>
+}
+``` |
 
 | Introduzco... |
 | --------------- |
-| <form action='http://web.pagos/donate.php' method='get' style='display:inline;'> |
-|     <input type='hidden' name='amount' value='100'> |
-|     <input type='hidden' name='receiver' value='attacker'> |
-|     <input type='submit' value='Profile' style='cursor:pointer;'> |
-| </form> |
-
+| ```
+<form action='http://web.pagos/donate.php' method='get' style='display:inline;'>
+    <input type='hidden' name='amount' value='100'>
+    <input type='hidden' name='receiver' value='attacker'>
+    <input type='submit' value='Profile' style='cursor:pointer;'>
+</form>
+``` |
 
    **b)** Una vez lo tenéis terminado, pensáis que la eficacia de este ataque aumentaría si no necesitara que el usuario pulse un botón. Con este objetivo, cread un comentario que sirva vuestros propósitos sin levantar ninguna sospecha entre los usuarios que consulten los comentarios sobre un jugador (show\_comments.php).
 
