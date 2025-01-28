@@ -134,7 +134,7 @@
    Y nos mostraría cada vez que alguien visite el buscador:
 
    ![](images/015.png)
-1. ### **3. Control de acceso, autenticación y sesiones de usuarios**
+### **3. Control de acceso, autenticación y sesiones de usuarios**
    **a)** En el ejercicio 1, hemos visto cómo era inseguro el acceso de los usuarios a la aplicación. En la página de register.php tenemos el registro de usuario. ¿Qué medidas debemos implementar para evitar que el registro sea inseguro? Justifica esas medidas e implementa las medidas que sean factibles en este proyecto.
 
    Para evitar que el registro sea inseguro, podemos implementar, por ejemplo, la validación  y saneamiento de entradas, ya que vemos que, como en otras paginas que ya hemos visto, se usa SQLite3::escapeString(), y es mejor usar consultas preparadas, también deberíamos validar la longitud y el formato del nombre de usuario, cosa que no se está haciendo.
